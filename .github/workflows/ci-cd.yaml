@@ -5,6 +5,10 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+permissions:
+  contents: read
+  packages: write     # ✅ Required to push to GHCR
+  id-token: write     # (optional) for future use with OIDC auth
 
 jobs:
   build-and-deploy:
@@ -35,10 +39,16 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build Docker image
-      run: docker build -t ghcr.io/${{ github.repository }}/onboarding-system:latest .
+      run: |
+        IMAGE_NAME=ghcr.io/${{ github.repository }}/onboarding-system:latest
+        echo "Building image $IMAGE_NAME"
+        docker build -t $IMAGE_NAME .
 
     - name: Push Docker image
-      run: docker push ghcr.io/${{ github.repository }}/onboarding-system:latest
+      run: |
+        IMAGE_NAME=ghcr.io/${{ github.repository }}/onboarding-system:latest
+        echo "Pushing image $IMAGE_NAME"
+        docker push $IMAGE_NAME
 
     # Optional: Deploy to Kubernetes (uncomment and configure for AWS EKS)
     # - name: Deploy to Kubernetes
