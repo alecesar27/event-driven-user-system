@@ -14,7 +14,26 @@ spec:
     spec:
     containers:
       - name: onboarding-container
-        image: onboarding-system:latest
+        image: ghcr.io/your-username/your-repo/onboarding-system:latest  # Replace with your image
         ports:
         - containerPort: 8000
         - containerPort: 8001
+        env:
+        - name: PYTHONPATH
+          value: "."
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: onboarding-service
+spec:
+  selector:
+    app: onboarding
+  ports:
+  - port: 8000
+    targetPort: 8000
+    name: fastapi
+  - port: 8001
+    targetPort: 8001
+    name: metrics
+  type: LoadBalancer  # Use ClusterIP for internal access
