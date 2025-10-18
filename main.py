@@ -5,7 +5,8 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel  # Added for POST body validation
-import jwt
+from jwt import encode, decode, ExpiredSignatureError, InvalidTokenError
+from contextlib import asynccontextmanager
 import json
 import logging
 from prometheus_client import start_http_server, Counter
@@ -86,15 +87,17 @@ def get_db_connection():
 security = HTTPBearer()
 
 async def authenticated_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
     try:
-        token = credentials.credentials
-        return jwt.decode(token, "secret", algorithms=["HS256"])
-    except jwt.ExpiredSignatureError:
+        payload = decode(token, "secret", algorithms=["HS256"])
+        return payload
+    except ExpiredSignatureError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired")
-    except jwt.InvalidTokenError:
+    except InvalidTokenError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-    except Exception:
+    except Exception as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+
 
 # UPDATED: Function to generate JWT token with timezone-aware datetime
 def generate_jwt_token(user_id: str, role: str) -> str:
@@ -104,7 +107,7 @@ def generate_jwt_token(user_id: str, role: str) -> str:
         "exp": datetime.now(timezone.utc) + timedelta(hours=1),  # Fixed deprecation
         "iat": datetime.now(timezone.utc)  # Fixed deprecation
     }
-    token = jwt.encode(payload, "secret", algorithm="HS256")
+    token = encode(payload, "secret", algorithm="HS256")
     return token
 
 # UPDATED: Endpoint to generate and return a JWT token
@@ -129,13 +132,13 @@ async def create_token(request: Request):
 # Protected route (unchanged)
 @app.get("/protected/onboarding-status", dependencies=[Depends(authenticated_user)])
 @app.post("/protected/onboarding-status", dependencies=[Depends(authenticated_user)])
-async def get_protected_status():
+async def get_protected_status(user=Depends(authenticated_user)):
     track_request()
     logging.info("Protected onboarding status accessed")
-    return {"status": "Onboarding in progress", "user": "Authenticated"}
+    return {"status": "Onboarding in progress", "user": user}
 
 # UPDATED: Lifespan event handler (replaces deprecated @app.on_event)
-@app.on_event("startup")  # Note: For full fix, use lifespan in FastAPI 0.95+, but keeping for compatibility
+@asynccontextmanager # Note: For full fix, use lifespan in FastAPI 0.95+, but keeping for compatibility
 async def startup_event():
     def start_metrics_server():
         start_http_server(8001)
