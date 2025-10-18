@@ -10,5 +10,4 @@ requests
 pytest-asyncio
 pytest-cov
 kafka
-jwt
 httpx

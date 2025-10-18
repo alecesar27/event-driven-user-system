@@ -5,7 +5,9 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel  # Added for POST body validation
-from jwt import encode, decode, ExpiredSignatureError, InvalidTokenError
+import jwt
+from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
+
 from contextlib import asynccontextmanager
 import json
 import logging
@@ -89,7 +91,7 @@ security = HTTPBearer()
 async def authenticated_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     token = credentials.credentials
     try:
-        payload = decode(token, "secret", algorithms=["HS256"])
+        payload = jwt.decode(token, "secret", algorithms=["HS256"])
         return payload
     except ExpiredSignatureError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired")
@@ -107,7 +109,7 @@ def generate_jwt_token(user_id: str, role: str) -> str:
         "exp": datetime.now(timezone.utc) + timedelta(hours=1),  # Fixed deprecation
         "iat": datetime.now(timezone.utc)  # Fixed deprecation
     }
-    token = encode(payload, "secret", algorithm="HS256")
+    token = jwt.encode(payload, "secret", algorithm="HS256")
     return token
 
 # UPDATED: Endpoint to generate and return a JWT token
