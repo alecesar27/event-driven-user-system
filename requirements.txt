@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+graphene
+PyJWT
+prometheus-client
+pydantic
+pydantic_core 
+pytest
+requests
+pytest-asyncio
+pytest-cov
+kafka
+jwt
+httpx
