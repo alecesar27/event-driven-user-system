@@ -5,6 +5,7 @@ PyJWT
 prometheus-client
 pydantic
 pydantic_core 
+pydantic-settings
 pytest
 requests
 pytest-asyncio

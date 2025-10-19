@@ -2,6 +2,7 @@ import pytest
 from prometheus_client import Counter
 import jwt
 from datetime import datetime, timedelta
+from api import routes_onboarding
 
 # Test Root Endpoint
 def test_root_endpoint(client):
@@ -112,7 +113,7 @@ def test_internal_server_error(client, monkeypatch):
     # Mock an exception in GraphQL
     def mock_execute(*args, **kwargs):
         raise Exception("Mock error")
-    monkeypatch.setattr("main.schema.execute", mock_execute)
+    monkeypatch.setattr(routes_onboarding, "graphql_execute", mock_execute)
     
     response = client.post("/graphql", json={"query": "{ test }"})
     assert response.status_code == 500

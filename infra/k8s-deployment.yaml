@@ -14,7 +14,7 @@ spec:
     spec:
     containers:
       - name: onboarding-container
-        image: ghcr.io/your-username/your-repo/onboarding-system:latest  # Replace with your image
+        image: ghcr.io/alecesar27/event-driven-user-system/onboarding-system:latest  # Replace with your image
         ports:
         - containerPort: 8000
         - containerPort: 8001
