@@ -42,7 +42,7 @@ jobs:
       run: |
         IMAGE_NAME=ghcr.io/${{ github.repository }}/onboarding-system:latest
         echo "Building image $IMAGE_NAME"
-        docker build -t $IMAGE_NAME .
+        docker build -t $IMAGE_NAME  -f docker/Dockerfile .
 
     - name: Push Docker image
       run: |
